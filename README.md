@@ -1,20 +1,31 @@
 # Customized Universal Installer 
 This repository walks through the steps for installing a DC/OS cluter using universal installer in a environment where you cannot create a VPC. the default installation of DC/OS using universal installer works under the pretense that it would be able to create VPC's and everything within a VPC before actual DC/OS installation is initiated. This also means that a VPC is dedicated only for DC/OS installation. Often we run into team's that do not have privileges to create VPC and will need to work with existing VPC's & Subnets at minimum. This means that instead of installer randomly picking subnets we would need to control which sunets they fall under as well. This repo also assume that you are faimiliar with standard AWS terminology 
 
-## Prequisites
+## Prerequisites
 
 WorkStation Pre-reqs
 - Linux, macOS, or windows
-- command-line shell terminal such as Bash or PowerShell
-- verified Amazon Web Services (AWS) account and AWS IAM user profile with permissions
+- Command-line shell terminal such as Bash or PowerShell
+- Verified Amazon Web Services (AWS) account and AWS IAM user profile with permissions
 - Follow instructions from here https://docs.d2iq.com/mesosphere/dcos/2.0/installing/evaluation/aws/
 
-VPC-Prereqs
-- VPC with Internet Gateway attached to it.
-- Atleast 2 or more Subnets which span over more than 1 Availability Zones's (1subnet/AZ, running 2 subnets in same AZ wont work)
-- Tagging in place for subnets using which they would be picked ex NAME:dcos-installer-subnet
-- Internet access to private subnets through either NAT-GATEWAY or NAT-INSTANCE running in a Public Subnet
+#### VPC-Prereqs
+Universal installer is designed to build an entire VPC to deploy install DC/OS. However since that approch would not suit adaption every customers meeds we would need to alter
+the universal installer's deployment. This repo gives you the privilieges to define existing VPC and Subnets rather than letting the Universal installer create them 
+on the go. However it's important you have configured that VPC you would like to deploy DC/OS prior to starting with the installation procedure.
+
+- Pick the VPC to deploy DC/OS in, Have the VPC id ready to be plugged in during installation  
+- Ensure an Internet Gateway attached to the VPC to be able to talk to the internet
+- At least 2 or more Subnets which span over more than 1 Availability Zones's (1 subnet per AZ)
+    - If deploying in public subnets ensure you have a route to the Internet Gateway, Check to see if you able to install packages from internet
+    - If deploying in private subnets ensure that you have route configured NAT-Gateway or NAT-Instance, Check to see if you able to install packages from internet
+- Ensure that there are no ACL's defined that would restrict traffic flow between the ec2's that would come up in the subnets 
+- Ensure that there are no ACL's defined that would restrict traffic flow between the ec2's and NAT-Gateway or NAT-Instances for egress traffic.
+- Ensure you tag your desired subnets with relavant tag in place for subnets using which they would be picked ex NAME:dcos-installer-subnet
+    - Note: This is tag using which Universal Installer would you pick the subnets to install DC/OS in.    
 - The IAM user should have privilieges to infrastrucure within VPC. 
+
+
 
 
 ## Installation
