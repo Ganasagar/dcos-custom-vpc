@@ -82,11 +82,11 @@ variable "private_agents_iam_instance_profile" {
 }
 
 variable "public_agents_iam_instance_profile" {
-  description = "Instance profile to be used for these public agent instances"  
+  description = "Instance profile to be used for these public agent instances"
 }
 
 variable "masters_acm_cert_arn" {
-  description = "ACM certifacte to be used for the masters load balancer"  
+  description = "ACM certifacte to be used for the masters load balancer"
 }
 
 variable "masters_internal_acm_cert_arn" {

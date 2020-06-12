@@ -3,9 +3,7 @@
 // Root Module that calls all the relavant modules for DC/OS installation in AWS
 //
 ////////////////////////////////////////////
-provider "aws" {
-  region = "us-west-2"
-}
+provider "aws" {}
 // create a ssh-key-pair.
 resource "aws_key_pair" "deployer" {
   provider = "aws"
@@ -30,7 +28,7 @@ data "aws_subnet_ids" "default_subnets" {
   vpc_id   = "${data.aws_vpc.default.id}"
   filter {
     name   = "tag:type"  # insert values of your tag's name ex-  tag:<YOUR_TAG_NAME>
-    values = ["jhernandez-dcos-custom"] # insert values of your tag  
+    values = ["dcos-custom-subnet-filter"] # insert values of your tag
   }
 }
 // we use intermediate local variables. So whenever it is needed to replace
