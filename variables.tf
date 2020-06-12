@@ -73,6 +73,30 @@ variable "os_user" {
   default = "centos"
 }
 
+variable "masters_iam_instance_profile" {
+  description = "Instance profile to be used for these master instances"
+}
+
+variable "private_agents_iam_instance_profile" {
+  description = "Instance profile to be used for these private agent instances"
+}
+
+variable "public_agents_iam_instance_profile" {
+  description = "Instance profile to be used for these public agent instances"  
+}
+
+variable "masters_acm_cert_arn" {
+  description = "ACM certifacte to be used for the masters load balancer"  
+}
+
+variable "masters_internal_acm_cert_arn" {
+  description = "ACM certifacte to be used for the internal masters load balancer"
+}
+
+variable "public_agents_acm_cert_arn" {
+  description = "ACM certifacte to be used for the public agents load balancer"
+}
+
 ////////////////////////////////////////////
 /////////////// END VARIABLES //////////////
 ////////////////////////////////////////////
