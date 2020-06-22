@@ -3,6 +3,36 @@
 // Only ssh_public_key is mandatory
 //
 ////////////////////////////////////////////
+variable "region" {
+  description = "AWS region"
+  default = "us-east-1"
+}
+
+variable "bootstrap_instance_type" {
+  description = "Bootstrap instance type"
+  default = "t3a.small"
+}
+
+variable "masters_instance_type" {
+  description = "Master instance type"
+  default = "m5.xlarge"
+}
+
+variable "private_agents_instance_type" {
+  description = "Private agent instance type"
+  default = "m5.large"
+}
+  
+variable "private_agents_root_volume_size" {
+  description = "Private agent instance volume size"
+  default = "120"
+}
+
+variable "public_agents_instance_type" {
+  description = "Public agent instance type"
+  default = "m5.large"
+}
+
 variable "ssh_public_key" {
   description = <<EOF
 Specify a SSH public key in authorized keys format (e.g. "ssh-rsa ..") to be used with the instances. Make sure you added this key to your ssh-agent
