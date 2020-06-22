@@ -51,7 +51,7 @@ private_agents_iam_instance_profile = "existing_iam_profile_name"
 public_agents_iam_instance_profile = "existing_iam_profile_name"
 
 #ACM certificate to be associated with load balancers
-masters_acm_cert_arn "existing_acm_cert_arn"
+masters_acm_cert_arn = "existing_acm_cert_arn"
 masters_internal_acm_cert_arn = "existing_acm_cert_arn"
 public_agents_acm_cert_arn = "existing_acm_cert_arn"
 
