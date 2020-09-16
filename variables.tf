@@ -3,6 +3,36 @@
 // Only ssh_public_key is mandatory
 //
 ////////////////////////////////////////////
+variable "region" {
+  description = "AWS region"
+  default = "us-east-1"
+}
+
+variable "bootstrap_instance_type" {
+  description = "Bootstrap instance type"
+  default = "t3a.small"
+}
+
+variable "masters_instance_type" {
+  description = "Master instance type"
+  default = "m5.xlarge"
+}
+
+variable "private_agents_instance_type" {
+  description = "Private agent instance type"
+  default = "m5.large"
+}
+  
+variable "private_agents_root_volume_size" {
+  description = "Private agent instance volume size"
+  default = "120"
+}
+
+variable "public_agents_instance_type" {
+  description = "Public agent instance type"
+  default = "m5.large"
+}
+
 variable "ssh_public_key" {
   description = <<EOF
 Specify a SSH public key in authorized keys format (e.g. "ssh-rsa ..") to be used with the instances. Make sure you added this key to your ssh-agent
@@ -71,6 +101,30 @@ variable "public_agents_additional_ports" {
 variable "os_user" {
   description = "os user to be used for the install"
   default = "centos"
+}
+
+variable "masters_iam_instance_profile" {
+  description = "Instance profile to be used for these master instances"
+}
+
+variable "private_agents_iam_instance_profile" {
+  description = "Instance profile to be used for these private agent instances"
+}
+
+variable "public_agents_iam_instance_profile" {
+  description = "Instance profile to be used for these public agent instances"
+}
+
+variable "masters_acm_cert_arn" {
+  description = "ACM certifacte to be used for the masters load balancer"
+}
+
+variable "masters_internal_acm_cert_arn" {
+  description = "ACM certifacte to be used for the internal masters load balancer"
+}
+
+variable "public_agents_acm_cert_arn" {
+  description = "ACM certifacte to be used for the public agents load balancer"
 }
 
 ////////////////////////////////////////////

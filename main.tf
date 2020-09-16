@@ -3,7 +3,9 @@
 // Root Module that calls all the relavant modules for DC/OS installation in AWS
 //
 ////////////////////////////////////////////
-provider "aws" {}
+provider "aws" {
+  region = "${var.region}"
+}
 // create a ssh-key-pair.
 resource "aws_key_pair" "deployer" {
   provider = "aws"
@@ -27,8 +29,8 @@ data "aws_subnet_ids" "default_subnets" {
   provider = "aws"
   vpc_id   = "${data.aws_vpc.default.id}"
   filter {
-    name   = "tag:Naam"  # insert values of your tag's name ex-  tag:<YOUR_TAG_NAME>
-    values = ["dcos-20-subnet"] # insert values of your tag  
+    name   = "tag:type"  # insert values of your tag's name ex-  tag:<YOUR_TAG_NAME>
+    values = ["dcos-custom-subnet-filter"] # insert values of your tag
   }
 }
 // we use intermediate local variables. So whenever it is needed to replace
@@ -76,18 +78,21 @@ locals {
   security_groups_elb_masters_internal = ["${list(module.dcos-security-groups.internal)}"]
   security_groups_elb_public_agents    = ["${list(module.dcos-security-groups.admin,module.dcos-security-groups.internal)}"]
 }
+
+// DISABLING this IAM section, since wabtec will require passing in their own pre-existing IAM profile
 // Permissions creates instances profiles so you could use Rexray and Kubernetes with AWS support
 // These set of IAM Rules will be applied as Instance Profiles. They will enable Rexray to maintain
 // volumes in your cluster
 // https://registry.terraform.io/modules/dcos-terraform/iam/aws
-module "dcos-iam" {
-  source  = "dcos-terraform/iam/aws"
-  version = "~> 0.2.0"
-  providers = {
-    aws = "aws"
-  }
-  cluster_name = "${var.cluster_name}"
-}
+//module "dcos-iam" {
+//  source  = "dcos-terraform/iam/aws"
+//  version = "~> 0.2.0"
+//  providers = {
+//    aws = "aws"
+//  }
+//  cluster_name = "${var.cluster_name}"
+//}
+
 // This spawning the Bootstrap node which will be used as the internal source for the installer.
 // https://registry.terraform.io/modules/dcos-terraform/bootstrap/aws
 module "dcos-bootstrap-instance" {
@@ -100,7 +105,7 @@ module "dcos-bootstrap-instance" {
   aws_subnet_ids         = ["${local.subnet_ids}"]
   aws_security_group_ids = ["${local.instance_security_groups}"]
   aws_key_name           = "${local.key_name}"
-  aws_instance_type      = "m4.large"
+  aws_instance_type      = "${var.bootstrap_instance_type}"
   aws_associate_public_ip_address = "${var.aws_associate_public_ip_address}"
   tags = "${var.tags}"
 }
@@ -116,7 +121,8 @@ module "dcos-master-instances" {
   aws_subnet_ids         = ["${local.subnet_ids}"]
   aws_security_group_ids = ["${local.instance_security_groups}"]
   aws_key_name           = "${local.key_name}"
-  aws_instance_type      = "m4.xlarge"
+  aws_instance_type      = "${var.masters_instance_type}"
+  aws_iam_instance_profile = "${local.masters_iam_instance_profile}"
   num_masters = "${var.num_masters}"
   aws_associate_public_ip_address = "${var.aws_associate_public_ip_address}"
   tags = "${var.tags}"
@@ -133,7 +139,10 @@ module "dcos-privateagent-instances" {
   aws_subnet_ids         = ["${local.subnet_ids}"]
   aws_security_group_ids = ["${local.instance_security_groups}"]
   aws_key_name           = "${local.key_name}"
-  aws_instance_type      = "m4.large"
+  aws_instance_type      = "${var.private_agents_instance_type}"
+  aws_root_volume_type = "gp2"
+  aws_root_volume_size = "${var.private_agents_root_volume_size}"
+  aws_iam_instance_profile = "${local.private_agents_iam_instance_profile}"
   num_private_agents = "${var.num_private_agents}"
   aws_associate_public_ip_address = "${var.aws_associate_public_ip_address}"
   tags = "${var.tags}"
@@ -150,7 +159,9 @@ module "dcos-publicagent-instances" {
   aws_subnet_ids         = ["${local.subnet_ids}"]
   aws_security_group_ids = ["${local.public_security_groups}"]
   aws_key_name           = "${local.key_name}"
-  aws_instance_type      = "m4.large"
+  aws_instance_type      =  "${var.public_agents_instance_type}"
+  aws_root_volume_type   = "gp2"
+  aws_iam_instance_profile = "${local.public_agents_iam_instance_profile}"
   num_public_agents = "${var.num_public_agents}"
   aws_associate_public_ip_address = "${var.aws_associate_public_ip_address}"
   tags = "${var.tags}"
@@ -173,6 +184,13 @@ locals {
   public_agent_private_ips = ["${module.dcos-publicagent-instances.private_ips}"]
   public_agents_os_user    = "${var.os_user}"
   public_agent_instances   = ["${module.dcos-publicagent-instances.instances}"]
+  masters_iam_instance_profile = "${var.masters_iam_instance_profile}"
+  private_agents_iam_instance_profile = "${var.private_agents_iam_instance_profile}"
+  public_agents_iam_instance_profile = "${var.public_agents_iam_instance_profile}"
+  masters_acm_cert_arn = "${var.masters_acm_cert_arn}"
+  masters_internal_acm_cert_arn = "${var.masters_internal_acm_cert_arn}"
+  public_agents_acm_cert_arn = "${var.public_agents_acm_cert_arn}"
+
 }
 // Load balancers is providing three load balancers.
 // - public master load balancer
@@ -201,6 +219,9 @@ module "dcos-lb" {
   security_groups_masters            = ["${list(module.dcos-security-groups.admin,module.dcos-security-groups.internal)}"]
   security_groups_masters_internal   = ["${list(module.dcos-security-groups.internal)}"]
   security_groups_public_agents      = ["${list(module.dcos-security-groups.internal, module.dcos-security-groups.admin)}"]
+  masters_acm_cert_arn               = "${local.masters_acm_cert_arn}"
+  masters_internal_acm_cert_arn      = "${local.masters_internal_acm_cert_arn}"
+  public_agents_acm_cert_arn         = "${local.public_agents_acm_cert_arn}"
   master_instances                   = ["${module.dcos-master-instances.instances}"]
   num_masters                        = "${var.num_masters}"
   num_public_agents                  = "${var.num_public_agents}"
